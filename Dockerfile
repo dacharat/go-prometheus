@@ -17,6 +17,7 @@ COPY . ./
 
 # Build the binary.
 RUN go build -v -o ./.bin/rest-api ./cmd/rest-api
+RUN go build -v -o ./.bin/grpc ./cmd/grpc
 
 # Use the official Debian slim image for a lean production container.
 # https://hub.docker.com/_/debian
@@ -28,6 +29,7 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
 
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/.bin/rest-api /.bin/rest-api
+COPY --from=builder /app/.bin/grpc /.bin/grpc
 
 # Run the web service on container startup.
 CMD ["/.bin/."]

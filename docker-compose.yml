@@ -9,6 +9,15 @@ services:
     networks:
       - mynetwork
 
+  grpc:
+    build: .
+    command: .bin/grpc
+    ports:
+      - 8980:8980
+      - 3333:3333
+    networks:
+      - mynetwork
+
   prometheus:
     image: prom/prometheus
     volumes:

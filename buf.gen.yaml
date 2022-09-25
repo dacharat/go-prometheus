@@ -1,0 +1,12 @@
+version: v1
+plugins:
+  - name: go
+    out: internal/gen/proto
+    opt: paths=source_relative
+  - name: go-grpc
+    out: internal/gen/proto
+    opt: paths=source_relative
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/dacharat/go-prometheus/internal/gen/proto

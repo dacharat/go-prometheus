@@ -20,26 +20,52 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
-func New(ctx context.Context) {
+type Option func(promOption) promOption
+
+type promOption struct {
+	port string
+}
+
+func newDefaultOption() promOption {
+	return promOption{
+		port: "2222",
+	}
+}
+
+func WithOverridePort(port string) Option {
+	return func(po promOption) promOption {
+		po.port = port
+		return po
+	}
+}
+
+func New(ctx context.Context, opts ...Option) {
 	exporter, cancel := createExporter(ctx)
 	defer cancel()
+
+	options := newDefaultOption()
+	for _, opt := range opts {
+		options = opt(options)
+	}
+
 	// Start the prometheus HTTP server and pass the exporter Collector to it
-	go serveMetrics(exporter.Collector)
+	go serveMetrics(exporter.Collector, options)
 
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 	<-ctx.Done()
 	log.Info().Msg("stop serving metrics")
 }
 
-func serveMetrics(collector prometheus.Collector) {
+func serveMetrics(collector prometheus.Collector, po promOption) {
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(collector, collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}), collectors.NewGoCollector())
 
-	log.Info().Msg("serving metrics at localhost:2222/metrics")
+	port := fmt.Sprintf(":%s", po.port)
+	log.Info().Msg(fmt.Sprintf("serving metrics at localhost%s/metrics", port))
 	http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 
 	srv := &http.Server{
-		Addr: ":2222",
+		Addr: port,
 	}
 
 	err := srv.ListenAndServe()
