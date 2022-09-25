@@ -11,10 +11,10 @@ import (
 	"go.opentelemetry.io/otel/metric/unit"
 )
 
-var (
-	pathAttrKey   attribute.Key = "path"
-	methodAttrKey attribute.Key = "method"
-	statusAttrKey attribute.Key = "status"
+const (
+	pathAttrKey   = attribute.Key("path")
+	methodAttrKey = attribute.Key("method")
+	statusAttrKey = attribute.Key("status")
 )
 
 func ResponseTimeMetric() gin.HandlerFunc {

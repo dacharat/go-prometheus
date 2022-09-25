@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"crypto/rand"
+	"math/big"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -24,6 +26,20 @@ func Start() {
 	})
 
 	r.GET("/test", func(gCtx *gin.Context) {
+		nBig, err := rand.Int(rand.Reader, big.NewInt(1200))
+		if err != nil {
+			gCtx.JSON(http.StatusInternalServerError, gin.H{"message": err})
+			return
+		}
+
+		n := nBig.Int64()
+		if n > 1100 {
+			gCtx.JSON(http.StatusBadRequest, gin.H{"message": "random more than 1000"})
+			return
+		}
+
+		t := time.Duration(n)
+		time.Sleep(time.Millisecond * t)
 		gCtx.JSON(http.StatusOK, gin.H{"message": "test"})
 	})
 
